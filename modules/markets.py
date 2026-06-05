@@ -95,9 +95,11 @@ def show_markets(cfg) -> None:
 
     section_header("MARKETS")
 
-    # Set module-level colour vars from cfg
+    # Use __stdout__ so isatty() reflects the real terminal even when stdout
+    # is redirected to a StringIO buffer inside ThreadPoolExecutor.
+    real_out = getattr(sys, "__stdout__", None) or sys.stdout
     global GREEN, RED, RESET
-    if cfg.use_color and sys.stdout.isatty():
+    if cfg.use_color and real_out.isatty():
         GREEN = "\033[32m"
         RED = "\033[31m"
         RESET = "\033[0m"
@@ -132,7 +134,7 @@ def show_markets(cfg) -> None:
         for _, n in periods:
             val = pct_change(row["closes"], n)
             fmt = fmt_pct(val)
-            colored = _colored_pct(fmt, cfg.use_color and sys.stdout.isatty())
+            colored = _colored_pct(fmt, cfg.use_color and real_out.isatty())
             # Right-align the raw (uncoloured) text in a 9-char field, then prepend colour
             pad = 9 - len(fmt)
             line += "  " + " " * max(pad, 0) + colored
