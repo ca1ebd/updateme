@@ -1,30 +1,78 @@
 # updateme
 
-A WSL bash morning briefing: weather, headlines, and market data — all in your terminal.
+A daily terminal briefing: weather, headlines, and market data — in one command.
 
-## Quick start
+```
+  Friday, June 6 2026  —  09:00 CDT
+
+  WEATHER -- Houston, Texas
+  Now: Partly cloudy              82F  (feels 88F)  Wind 9mph  Humidity 78%
+
+  Date           Condition                      High    Low   Rain
+  -------------- ---------------------------- ------ ------ ------
+  Fri Jun 6      Partly cloudy                  87°F   75°F    73%
+  Sat Jun 7      Thunderstorm                   92°F   77°F    59%
+  ...
+
+  HEADLINES
+   1. Title of article here          (clickable link in supported terminals)
+   ...
+
+  MARKETS
+  TICKER     NAME                       PRICE      1 WK      1 MO      3 MO      1 YR
+  ^GSPC      S&P 500                $5,012.34    +1.23%    +3.45%    +7.89%   +23.10%
+  ...
+```
+
+## Install
+
+### One-liner (macOS / Linux / WSL)
 
 ```bash
-cd ~/Development/spikes/updateme   # or wherever you cloned/copied it
-chmod +x updateme.sh
-./updateme.sh
+curl -fsSL https://raw.githubusercontent.com/ca1ebd/updateme/main/install.sh | bash
+```
+
+Then reload your shell and run `updateme`.
+
+> **macOS note:** macOS ships with bash 3.2, which is too old. Install bash 4+ first:
+> ```bash
+> brew install bash
+> ```
+> Then re-run the installer.
+
+### Manual install
+
+```bash
+git clone https://github.com/ca1ebd/updateme.git ~/.local/share/updateme
+mkdir -p ~/.local/bin
+cat > ~/.local/bin/updateme << 'EOF'
+#!/usr/bin/env bash
+exec bash "$HOME/.local/share/updateme/updateme.sh" "$@"
+EOF
+chmod +x ~/.local/bin/updateme
+```
+
+Make sure `~/.local/bin` is in your PATH (add to `~/.zshrc`, `~/.bashrc`, or `~/.bash_profile`):
+
+```bash
+export PATH="${HOME}/.local/bin:${PATH}"
 ```
 
 ## Configuration
 
-Open `config.sh` and adjust:
+Edit `~/.local/share/updateme/config.sh`:
 
 | Variable | Default | Description |
 |---|---|---|
-| `LOCATION` | `"New York"` | City, airport code, or `"lat,lon"` |
-| `FORECAST_DAYS` | `7` | Days of weather forecast (1–7) |
-| `NEWS_API_KEY` | *(blank)* | Optional [NewsAPI.org](https://newsapi.org/register) key |
-| `HEADLINE_COUNT` | `8` | How many headlines to show |
-| `TICKERS` | `(AAPL MSFT NVDA)` | Extra tickers beyond S&P 500 and NASDAQ |
+| `LOCATION` | `"New York"` | City name, airport code, or `"lat,lon"` |
+| `FORECAST_DAYS` | `7` | Days of forecast shown (1–5) |
+| `NEWS_API_KEY` | *(blank)* | Optional [NewsAPI.org](https://newsapi.org/register) key — falls back to BBC RSS if blank |
+| `HEADLINE_COUNT` | `8` | Number of headlines |
+| `TICKERS` | `(AAPL MSFT NVDA)` | Additional tickers beyond S&P 500 and NASDAQ |
 
 ### Adding tickers
 
-Edit the `TICKERS` array in `config.sh`. Any [Yahoo Finance symbol](https://finance.yahoo.com) works:
+Any [Yahoo Finance](https://finance.yahoo.com) symbol works:
 
 ```bash
 TICKERS=(
@@ -32,46 +80,41 @@ TICKERS=(
   "TSLA"
   "BTC-USD"   # Bitcoin
   "GC=F"      # Gold futures
-  "EURUSD=X"  # EUR/USD FX
+  "EURUSD=X"  # EUR/USD
 )
 ```
-
-### News: key vs. RSS fallback
-
-- **With a NewsAPI key** — US top headlines via NewsAPI.org (free tier: 100 req/day)
-- **Without a key** — BBC News RSS feed, parsed locally with python3, no account needed
-
-Headlines are clickable hyperlinks in terminals that support OSC 8 (Windows Terminal, iTerm2, Kitty, WezTerm). In Windows Terminal, Ctrl+click opens the article.
 
 ## Usage
 
 ```
-./updateme.sh              Full briefing
-./updateme.sh --weather    Weather only
-./updateme.sh --news       Headlines only
-./updateme.sh --markets    Markets only
-./updateme.sh --help       Help
+updateme              Full briefing
+updateme --weather    Weather only
+updateme --news       Headlines only
+updateme --markets    Markets only
+updateme --help       Help
 ```
 
-## Run automatically on WSL login
+## Run automatically on login
 
-Add to the bottom of your `~/.bashrc`:
-
+**zsh** (`~/.zshrc`):
 ```bash
-# Show daily briefing once per shell session
 if [[ -z "${BRIEFING_SHOWN:-}" ]]; then
   export BRIEFING_SHOWN=1
-  ~/Development/spikes/updateme/updateme.sh
+  updateme
 fi
 ```
 
-## Dependencies
+**bash** (`~/.bashrc` or `~/.bash_profile`):
+```bash
+[ -z "${BRIEFING_SHOWN:-}" ] && export BRIEFING_SHOWN=1 && updateme
+```
 
-All standard in WSL (Ubuntu):
+## Requirements
 
-- `bash` 4+
-- `curl`
-- `python3` (for JSON parsing and RSS)
-- `jq` (optional, used for JSON if available — faster than python3 inline)
+| Dependency | macOS | Linux / WSL |
+|---|---|---|
+| bash 4+ | `brew install bash` | Usually pre-installed |
+| curl | Pre-installed | Usually pre-installed |
+| python3 | `brew install python` or Xcode CLI tools | Usually pre-installed |
 
-No pip packages required.
+Headline links are clickable in terminals that support OSC 8: **iTerm2**, **WezTerm**, **Kitty**, **Windows Terminal**.
