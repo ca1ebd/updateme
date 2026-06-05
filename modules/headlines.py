@@ -94,7 +94,10 @@ def show_headlines(cfg) -> None:
 
     section_header("HEADLINES")
 
-    use_color = cfg.use_color and sys.stdout.isatty()
+    # Use __stdout__ so isatty() reflects the real terminal even when stdout
+    # is redirected to a StringIO buffer inside ThreadPoolExecutor.
+    real_out = getattr(sys, "__stdout__", None) or sys.stdout
+    use_color = cfg.use_color and real_out.isatty()
     items: List[dict] = []
     source_label = ""
 
