@@ -1,0 +1,5 @@
+*.log
+*.tmp
+updateme_screenshot.png
+updateme_preview.html
+setup-git.sh
