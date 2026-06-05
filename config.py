@@ -13,7 +13,7 @@ class Config:
     location: str = "Houston, Texas"
 
     # Number of forecast days to show (1-7)
-    forecast_days: int = 7
+    forecast_days: int = 5
 
     # ── News headlines ────────────────────────────────────────────────────────
     # Optional: paste a free NewsAPI.org key here to get real-time headlines.
