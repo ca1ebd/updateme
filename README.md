@@ -1,120 +1,82 @@
 # updateme
 
-A daily terminal briefing: weather, headlines, and market data — in one command.
+A daily terminal briefing: weather, headlines, and market data — all in your terminal.
 
-```
-  Friday, June 6 2026  —  09:00 CDT
+## Quick start
 
-  WEATHER -- Houston, Texas
-  Now: Partly cloudy              82F  (feels 88F)  Wind 9mph  Humidity 78%
-
-  Date           Condition                      High    Low   Rain
-  -------------- ---------------------------- ------ ------ ------
-  Fri Jun 6      Partly cloudy                  87°F   75°F    73%
-  Sat Jun 7      Thunderstorm                   92°F   77°F    59%
-  ...
-
-  HEADLINES
-   1. Title of article here          (clickable link in supported terminals)
-   ...
-
-  MARKETS
-  TICKER     NAME                       PRICE      1 WK      1 MO      3 MO      1 YR
-  ^GSPC      S&P 500                $5,012.34    +1.23%    +3.45%    +7.89%   +23.10%
-  ...
+```bash
+cd ~/Development/spikes/updateme   # or wherever you cloned/copied it
+python3 updateme.py
 ```
 
-## Install
-
-### One-liner (macOS / Linux / WSL)
+Or install system-wide (creates `~/.local/bin/updateme`):
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/ca1ebd/updateme/main/install.sh | bash
 ```
 
-Then reload your shell and run `updateme`.
-
-> **macOS note:** macOS ships with bash 3.2, which is too old. Install bash 4+ first:
-> ```bash
-> brew install bash
-> ```
-> Then re-run the installer.
-
-### Manual install
-
-```bash
-git clone https://github.com/ca1ebd/updateme.git ~/.local/share/updateme
-mkdir -p ~/.local/bin
-cat > ~/.local/bin/updateme << 'EOF'
-#!/usr/bin/env bash
-exec bash "$HOME/.local/share/updateme/updateme.sh" "$@"
-EOF
-chmod +x ~/.local/bin/updateme
-```
-
-Make sure `~/.local/bin` is in your PATH (add to `~/.zshrc`, `~/.bashrc`, or `~/.bash_profile`):
-
-```bash
-export PATH="${HOME}/.local/bin:${PATH}"
-```
-
 ## Configuration
 
-Edit `~/.local/share/updateme/config.sh`:
+Open `config.py` and edit the `Config` dataclass:
 
-| Variable | Default | Description |
+| Field | Default | Description |
 |---|---|---|
-| `LOCATION` | `"New York"` | City name, airport code, or `"lat,lon"` |
-| `FORECAST_DAYS` | `7` | Days of forecast shown (1–5) |
-| `NEWS_API_KEY` | *(blank)* | Optional [NewsAPI.org](https://newsapi.org/register) key — falls back to BBC RSS if blank |
-| `HEADLINE_COUNT` | `8` | Number of headlines |
-| `TICKERS` | `(AAPL MSFT NVDA)` | Additional tickers beyond S&P 500 and NASDAQ |
+| `location` | `"Houston, Texas"` | City, airport code, or `"lat,lon"` |
+| `forecast_days` | `7` | Days of weather forecast (1–7) |
+| `news_api_key` | `""` | Optional [NewsAPI.org](https://newsapi.org/register) key |
+| `headline_count` | `8` | How many headlines to show |
+| `tickers` | `["BTC-USD"]` | Extra tickers beyond S&P 500 and NASDAQ |
+| `use_color` | `True` | Set to `False` when piping output to a file |
 
 ### Adding tickers
 
-Any [Yahoo Finance](https://finance.yahoo.com) symbol works:
+Edit the `tickers` list in `config.py`. Any [Yahoo Finance symbol](https://finance.yahoo.com) works:
 
-```bash
-TICKERS=(
-  "AAPL"
-  "TSLA"
-  "BTC-USD"   # Bitcoin
-  "GC=F"      # Gold futures
-  "EURUSD=X"  # EUR/USD
-)
+```python
+tickers=["AAPL", "TSLA", "BTC-USD", "GC=F", "EURUSD=X"]
 ```
+
+### News: key vs. RSS fallback
+
+- **With a NewsAPI key** — US top headlines via NewsAPI.org (free tier: 100 req/day)
+- **Without a key** — BBC News RSS feed, no account needed
+
+Headlines are clickable hyperlinks in terminals that support OSC 8 (Windows Terminal, iTerm2, Kitty, WezTerm).
 
 ## Usage
 
 ```
-updateme              Full briefing
-updateme --weather    Weather only
-updateme --news       Headlines only
-updateme --markets    Markets only
-updateme --help       Help
+python3 updateme.py              Full briefing
+python3 updateme.py --weather    Weather only
+python3 updateme.py --news       Headlines only
+python3 updateme.py --markets    Markets only
+python3 updateme.py --help       Help
 ```
 
-## Run automatically on login
+## Run automatically on WSL login
 
-**zsh** (`~/.zshrc`):
+Add to the bottom of your `~/.bashrc`:
+
 ```bash
+# Show daily briefing once per shell session
 if [[ -z "${BRIEFING_SHOWN:-}" ]]; then
   export BRIEFING_SHOWN=1
   updateme
 fi
 ```
 
-**bash** (`~/.bashrc` or `~/.bash_profile`):
+## Dependencies
+
+- **Python 3.8+** — no pip packages required; stdlib only (`urllib`, `json`, `concurrent.futures`, `argparse`, `xml.etree.ElementTree`, `dataclasses`)
+
+## Development
+
 ```bash
-[ -z "${BRIEFING_SHOWN:-}" ] && export BRIEFING_SHOWN=1 && updateme
+# Run all tests
+python3 -m unittest discover tests/
+
+# Or with pytest
+python3 -m pytest tests/
 ```
 
-## Requirements
-
-| Dependency | macOS | Linux / WSL |
-|---|---|---|
-| bash 4+ | `brew install bash` | Usually pre-installed |
-| curl | Pre-installed | Usually pre-installed |
-| python3 | `brew install python` or Xcode CLI tools | Usually pre-installed |
-
-Headline links are clickable in terminals that support OSC 8: **iTerm2**, **WezTerm**, **Kitty**, **Windows Terminal**.
+The three fetch modules (`weather.py`, `headlines.py`, `markets.py`) expose pure functions for all business logic, fully covered by unit tests. Network calls are isolated in `_fetch_*` helpers.
