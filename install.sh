@@ -4,7 +4,7 @@
 
 set -euo pipefail
 
-REPO_RAW="https://raw.githubusercontent.com/ca1ebd/updateme/main"
+REPO_RAW="${REPO_RAW:-https://raw.githubusercontent.com/ca1ebd/updateme/main}"
 INSTALL_DIR="${HOME}/.local/share/updateme"
 BIN_DIR="${HOME}/.local/bin"
 WRAPPER="${BIN_DIR}/updateme"
