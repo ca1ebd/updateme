@@ -99,15 +99,12 @@ def show_headlines(cfg) -> None:
     real_out = getattr(sys, "__stdout__", None) or sys.stdout
     use_color = cfg.use_color and real_out.isatty()
     items: List[dict] = []
-    source_label = ""
 
     if cfg.news_api_key:
         items = _fetch_newsapi(cfg.news_api_key, cfg.news_country, cfg.headline_count)
-        source_label = "NewsAPI.org"
 
     if not items:
         items = _fetch_bbc_rss(cfg.headline_count)
-        source_label = "BBC News RSS"
 
     if not items:
         warn("Could not fetch headlines. Check your network connection.")
@@ -116,7 +113,3 @@ def show_headlines(cfg) -> None:
     for i, item in enumerate(items, start=1):
         link = _hyperlink(item["url"], item["title"], use_color)
         print(f"  {i:2}. {link}")
-
-    dim = "\033[2m" if use_color else ""
-    reset = "\033[0m" if use_color else ""
-    print(f"\n  {dim}Source: {source_label}{reset}\n")
