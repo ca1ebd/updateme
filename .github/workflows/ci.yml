@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - 'fix/**'
+      - 'feature/**'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+      - name: Run unit tests
+        run: uv run python -m unittest discover -s tests -v
+
+  install-test-uv:
+    name: Install Test (uv tool)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test uv tool install in clean container
+        run: |
+          docker run --rm -v "$PWD":/repo ubuntu:24.04 bash -euo pipefail -c '
+            apt-get update -qq && apt-get install -y -qq curl ca-certificates
+            curl -LsSf https://astral.sh/uv/install.sh | sh
+            export PATH="$HOME/.local/bin:$PATH"
+            uv tool install /repo
+            updateme --help
+          '
+
+  install-test-bash:
+    name: Install Test (bash installer)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test bash installer in clean container
+        run: |
+          docker run --rm -v "$PWD":/repo ubuntu:24.04 bash -euo pipefail -c '
+            apt-get update -qq && apt-get install -y -qq python3 python3-venv
+            cd /repo
+            python3 -m http.server 8080 &
+            sleep 1
+            REPO_RAW=http://localhost:8080 bash install.sh
+            ~/.local/bin/updateme --help
+          '
