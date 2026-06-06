@@ -2,38 +2,59 @@
 
 A daily terminal briefing: weather, headlines, and market data — all in your terminal.
 
-## Quick start
+![screenshot](docs/screenshot.png)
+
+## Install
+
+**Option 1 — uv tool (recommended if you have [uv](https://docs.astral.sh/uv/)):**
 
 ```bash
-cd ~/Development/spikes/updateme   # or wherever you cloned/copied it
-python3 updateme.py
+uv tool install git+https://github.com/ca1ebd/updateme.git
 ```
 
-Or install system-wide (creates `~/.local/bin/updateme`):
+Installs `updateme` to `~/.local/bin` in an isolated environment. Upgrade any time with:
+
+```bash
+uv tool upgrade updateme
+```
+
+**Option 2 — bash installer (no uv required):**
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/ca1ebd/updateme/main/install.sh | bash
 ```
 
+Downloads files to `~/.local/share/updateme/` and creates a self-contained virtual environment there.
+
 ## Configuration
 
-Open `config.py` and edit the `Config` dataclass:
+Edit `config.yml` in your install directory:
 
 | Field | Default | Description |
 |---|---|---|
 | `location` | `"Houston, Texas"` | City, airport code, or `"lat,lon"` |
-| `forecast_days` | `7` | Days of weather forecast (1–7) |
+| `forecast_days` | `5` | Days of weather forecast (1–7) |
 | `news_api_key` | `""` | Optional [NewsAPI.org](https://newsapi.org/register) key |
 | `headline_count` | `8` | How many headlines to show |
+| `news_country` | `"us"` | Country code for NewsAPI headlines |
 | `tickers` | `["BTC-USD"]` | Extra tickers beyond S&P 500 and NASDAQ |
-| `use_color` | `True` | Set to `False` when piping output to a file |
+| `use_color` | `true` | Set to `false` when piping output to a file |
+
+Config file locations:
+- **bash installer:** `~/.local/share/updateme/config.yml`
+- **uv tool:** run `python3 -c "import config; print(config.__file__)"` inside the tool env to find it, or clone the repo and use `uv run` (see Development below)
 
 ### Adding tickers
 
-Edit the `tickers` list in `config.py`. Any [Yahoo Finance symbol](https://finance.yahoo.com) works:
+Any [Yahoo Finance symbol](https://finance.yahoo.com) works:
 
-```python
-tickers=["AAPL", "TSLA", "BTC-USD", "GC=F", "EURUSD=X"]
+```yaml
+tickers:
+  - AAPL
+  - TSLA
+  - BTC-USD
+  - "GC=F"
+  - "EURUSD=X"
 ```
 
 ### News: key vs. RSS fallback
@@ -46,37 +67,38 @@ Headlines are clickable hyperlinks in terminals that support OSC 8 (Windows Term
 ## Usage
 
 ```
-python3 updateme.py              Full briefing
-python3 updateme.py --weather    Weather only
-python3 updateme.py --news       Headlines only
-python3 updateme.py --markets    Markets only
-python3 updateme.py --help       Help
+updateme              Full briefing
+updateme --weather    Weather only
+updateme --news       Headlines only
+updateme --markets    Markets only
+updateme --help       Help
 ```
 
-## Run automatically on WSL login
+## Run automatically on login
 
-Add to the bottom of your `~/.bashrc`:
+Add to the bottom of your `~/.bashrc` (or `~/.zshrc`):
 
 ```bash
-# Show daily briefing once per shell session
 if [[ -z "${BRIEFING_SHOWN:-}" ]]; then
   export BRIEFING_SHOWN=1
   updateme
 fi
 ```
 
-## Dependencies
-
-- **Python 3.8+** — no pip packages required; stdlib only (`urllib`, `json`, `concurrent.futures`, `argparse`, `xml.etree.ElementTree`, `dataclasses`)
-
 ## Development
 
 ```bash
-# Run all tests
-python3 -m unittest discover tests/
-
-# Or with pytest
-python3 -m pytest tests/
+git clone https://github.com/ca1ebd/updateme.git
+cd updateme
+uv run python updateme.py        # run the app
+uv run python -m unittest discover tests/ -v   # run tests
 ```
 
-The three fetch modules (`weather.py`, `headlines.py`, `markets.py`) expose pure functions for all business logic, fully covered by unit tests. Network calls are isolated in `_fetch_*` helpers.
+Edit `config.yml` in the repo root to customize during development.
+
+## Dependencies
+
+- **Python 3.12+**
+- **[PyYAML](https://pypi.org/project/PyYAML/)** — config file parsing (installed automatically by both install methods)
+
+All other functionality uses the standard library (`urllib`, `json`, `concurrent.futures`, `argparse`, `xml.etree.ElementTree`).
