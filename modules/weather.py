@@ -190,8 +190,8 @@ def show_weather(cfg) -> None:
             )
 
     print()
-    print(f"  {'Date':<14} {'Condition':<28} {'High':>6} {'Low':>6} {'Rain':>6}")
-    print(f"  {'-'*14} {'-'*28} {'-'*6} {'-'*6} {'-'*6}")
+    print(f"  {'Date':<14} {'Condition':<28} {'High °F':>7} {'Low °F':>7} {'Rain %':>7}")
+    print(f"  {'-'*14} {'-'*28} {'-'*7} {'-'*7} {'-'*7}")
 
     if daily:
         days = parse_forecast(daily)
@@ -204,4 +204,6 @@ def show_weather(cfg) -> None:
             hi = f"{day['hi']:.0f}" if day["hi"] is not None else "?"
             lo = f"{day['lo']:.0f}" if day["lo"] is not None else "?"
             rain = str(day["rain"]) if day["rain"] is not None else "?"
-     
+            print(f"  {label:<14} {desc:<28} {hi:>7} {lo:>7} {rain:>7}")
+
+    print()

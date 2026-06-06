@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 
@@ -109,20 +110,38 @@ def main() -> None:
     if run_markets:
         tasks.append(("markets",   show_markets,   config))
 
-    # Parallel fetch; output is captured per section and printed in order
+    # Parallel fetch; output is captured per section and printed in order.
+    # contextlib.redirect_stdout is NOT thread-safe (it mutates the global
+    # sys.stdout), so we use a thread-local proxy instead.
     import io
-    import contextlib
+
+    _tls = threading.local()
+
+    class _TLSStdout:
+        """Routes writes to a per-thread StringIO, or the real stdout."""
+        def write(self, s):
+            buf = getattr(_tls, "capture", None)
+            return buf.write(s) if buf is not None else sys.__stdout__.write(s)
+        def flush(self):
+            buf = getattr(_tls, "capture", None)
+            (buf if buf is not None else sys.__stdout__).flush()
+        def isatty(self):
+            return bool(sys.__stdout__ and sys.__stdout__.isatty())
+
+    _real_stdout = sys.stdout
+    sys.stdout = _TLSStdout()
 
     results: dict[str, str] = {}
-    errors:  dict[str, str] = {}
 
     def run_section(name: str, fn, cfg) -> tuple[str, str]:
         buf = io.StringIO()
+        _tls.capture = buf
         try:
-            with contextlib.redirect_stdout(buf):
-                fn(cfg)
+            fn(cfg)
         except Exception as exc:
             return name, f"  ⚠  {name} failed: {exc}\n"
+        finally:
+            _tls.capture = None
         return name, buf.getvalue()
 
     order = [t[0] for t in tasks]
@@ -135,6 +154,8 @@ def main() -> None:
         for future in as_completed(futures):
             name, output = future.result()
             results[name] = output
+
+    sys.stdout = _real_stdout
 
     # Print in canonical order
     for name in order:
