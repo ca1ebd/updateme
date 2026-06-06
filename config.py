@@ -25,6 +25,7 @@ class Config:
     period_quarter: int = 63
     period_year: int = 252
     use_color: bool = True
+    time_format: str = "24h"  # "24h" or "12h"
 
 
 def _load() -> Config:
