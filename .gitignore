@@ -1,5 +1,7 @@
 *.log
 *.tmp
-updateme_screenshot.png
-updateme_preview.html
-setup-git.sh
+
+env/
+__pycache__/
+*.pyc
+
