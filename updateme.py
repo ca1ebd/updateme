@@ -162,7 +162,7 @@ def main() -> None:
     for name in order:
         sys.stdout.write(results.get(name, ""))
 
-    print(f"{DIM}  Done.{RESET}\n")
+    print()
 
 
 if __name__ == "__main__":
