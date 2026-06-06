@@ -42,7 +42,7 @@ Edit `config.yml` in your install directory:
 
 Config file locations:
 - **bash installer:** `~/.local/share/updateme/config.yml`
-- **uv tool:** run `python3 -c "import config; print(config.__file__)"` inside the tool env to find it, or clone the repo and use `uv run` (see Development below)
+- **uv tool:** `~/.local/share/uv/tools/updateme/lib/python*/site-packages/config.yml` — or clone the repo and use `uv run` for easier access (see Development below)
 
 ### Adding tickers
 
