@@ -67,7 +67,7 @@ def _build_parser() -> argparse.ArgumentParser:
             "  --weather    Weather forecast only\n"
             "  --news       Headlines only\n"
             "  --markets    Market data only\n\n"
-            "  Configuration: edit config.py"
+            "  Configuration: edit config.yml"
         ),
     )
     p.add_argument("--weather", action="store_true", help="Weather forecast only")
