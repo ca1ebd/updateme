@@ -99,7 +99,8 @@ def main() -> None:
 
     # Date/time header
     now = datetime.now()
-    print(f"\n{BOLD}  {now.strftime('%A, %B %-d %Y  —  %H:%M %Z')}{RESET}")
+    time_str = now.strftime("%-I:%M %p") if config.time_format == "12h" else now.strftime("%H:%M")
+    print(f"\n{BOLD}  {now.strftime('%A, %B %-d %Y')}  —  {time_str} {now.strftime('%Z')}{RESET}")
 
     # Build list of tasks to run in parallel
     tasks = []

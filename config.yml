@@ -36,3 +36,6 @@ period_year: 252
 # ── Display ────────────────────────────────────────────────────────────────────
 # Set to false to disable colour output (e.g. if piping to a file)
 use_color: true
+
+# Time format for the daily header: "24h" (e.g. 14:30) or "12h" (e.g. 2:30 PM)
+time_format: "24h"
