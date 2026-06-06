@@ -1,6 +1,7 @@
 *.log
 *.tmp
 
+.venv/
 env/
 __pycache__/
 *.pyc
